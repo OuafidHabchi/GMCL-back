@@ -12,10 +12,12 @@ const EstimationSchema = new mongoose.Schema({
     description: { type: String, required: false },
     images: [{ type: String, }], // chemins vers les fichiers images
     Seen: [{ type: String, }], // liste des noms des utilisateurs qui ont vu l'estimation
-    reply:{type : Boolean, default: false},
-    replyBy:{type : String, default: ""},
-    replyMessage:{type : String, default: ""},
-    replyDate:{type : Date, default: Date.now()},
+    preferredLanguage: { type: String, required: true },
+    contactMethod: { type: String, required: true },
+    reply: { type: Boolean, default: false },
+    replyBy: { type: String, default: "" },
+    replyMessage: { type: String, default: "" },
+    replyDate: { type: Date, default: Date.now() },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Estimation', EstimationSchema);

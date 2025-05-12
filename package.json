@@ -4,6 +4,7 @@
   "description": "��#\u0000 \u0000G\u0000M\u0000C\u0000L\u0000-\u0000b\u0000a\u0000c\u0000k\u0000\r\u0000 \u0000",
   "main": "server.js",
   "dependencies": {
+    "axios": "^1.9.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",

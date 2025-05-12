@@ -48,7 +48,7 @@ exports.login = async (req, res) => {
 
 
 exports.createEmployee = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role,phone } = req.body;
 
   try {
     // Vérifie si l'utilisateur existe déjà
@@ -62,6 +62,7 @@ exports.createEmployee = async (req, res) => {
       name,
       email,
       password,
+      phone,
       role
     });
 
@@ -95,11 +96,11 @@ exports.deleteEmployeeById = async (req, res) => {
 exports.updateEmployeeById = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role,phone } = req.body;
 
     const updatedEmployee = await Employee.findByIdAndUpdate(
       id,
-      { name, email, password, role },
+      { name, email, password, role,phone },
       { new: true }
     );
 

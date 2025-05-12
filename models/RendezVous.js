@@ -37,7 +37,7 @@ const rendezVousSchema = new mongoose.Schema({
     ref: 'Estimation',
     // required: true,
   },
- 
+
   confirmation: {
     type: Boolean,
     default: false,
@@ -46,6 +46,8 @@ const rendezVousSchema = new mongoose.Schema({
     type: String, // ou ObjectId si tu veux référencer un utilisateur
     default: null,
   },
+  preferredLanguage: { type: String, required: true },
+  contactMethod: { type: String, required: true },
 }, {
   timestamps: true // ajoute createdAt et updatedAt
 });

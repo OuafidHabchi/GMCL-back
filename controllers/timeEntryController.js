@@ -43,8 +43,7 @@ exports.updateTimeEntry = async (req, res) => {
     try {
       const { id } = req.params;
       const { endTime, breakDuration, date } = req.body;
-      console.log('ID:', req.params);
-      console.log('req.body:', req.body);
+
   
       const timeEntry = await TimeEntry.findOneAndUpdate(
         { employeeId: id, date }, // <-- Trouver par employeeId et date
@@ -108,9 +107,7 @@ exports.getTimeEntries = async (req, res) => {
 exports.generateReport = async (req, res) => {
   try {
     const { employeeId, startDate, endDate } = req.query;
-    console.log('employeeId:', req.query);
-    console.log('employeeId:', employeeId);
-
+    
 
     const timeEntries = await TimeEntry.find({
       employeeId,
@@ -130,7 +127,7 @@ exports.generateReport = async (req, res) => {
     const dailyData = timeEntries.map(entry => {
       const start = new Date(`${entry.date}T${entry.startTime}`);
       const end = new Date(`${entry.date}T${entry.endTime}`);
-      const hoursWorked = (end - start) / (1000 * 60 * 60) - (entry.breakDuration / 60);
+      const hoursWorked = (end - start) / (1000 * 60 * 60) ;
       
       return {
         date: entry.date,
