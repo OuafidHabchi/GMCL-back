@@ -51,6 +51,7 @@ exports.createEmployee = async (req, res) => {
   const { name, email, password, role,phone } = req.body;
 
   try {
+    email = email.toLowerCase();
     // Vérifie si l'utilisateur existe déjà
     const existingEmployee = await Employee.findOne({ email });
     if (existingEmployee) {
@@ -96,11 +97,16 @@ exports.deleteEmployeeById = async (req, res) => {
 exports.updateEmployeeById = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, password, role,phone } = req.body;
+    let { name, email, password, role, phone } = req.body;
+
+    // Convertir l'email en minuscules
+    if (email) {
+      email = email.toLowerCase();
+    }
 
     const updatedEmployee = await Employee.findByIdAndUpdate(
       id,
-      { name, email, password, role,phone },
+      { name, email, password, role, phone },
       { new: true }
     );
 
