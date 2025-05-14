@@ -23,7 +23,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 // Connexion à MongoDB
-mongoose.connect('mongodb+srv://wafid:wafid@ouafid.aihn5iq.mongodb.net/GMCL')
+mongoose.connect('mongodb+srv://habchiwafid:AnF2rLKK7mL4MoaA@cluster0.aow7i9u.mongodb.net/GMCL')
   .then(() => console.log('Connecté à MongoDB'))
   .catch(err => console.error('Erreur de connexion à MongoDB:', err));
 

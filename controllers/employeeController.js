@@ -48,32 +48,31 @@ exports.login = async (req, res) => {
 
 
 exports.createEmployee = async (req, res) => {
-  const { name, email, password, role,phone } = req.body;
+  const { name, email, password, role, phone } = req.body;
 
-  try {
-    email = email.toLowerCase();
-    // Vérifie si l'utilisateur existe déjà
-    const existingEmployee = await Employee.findOne({ email });
-    if (existingEmployee) {
-      return res.status(400).json({ success: false, message: 'Email déjà utilisé.' });
-    }
-
-    // Création de l'utilisateur
-    const newEmployee = new Employee({
-      name,
-      email,
-      password,
-      phone,
-      role
-    });
-
-    await newEmployee.save();
-
-    return res.status(201).json({ success: true, employee: newEmployee });
-  } catch (error) {
-    console.error('Erreur lors de la création de l\'employé :', error);
-    return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+try {
+  const normalizedEmail = email.toLowerCase();
+  const existingEmployee = await Employee.findOne({ email: normalizedEmail });
+  if (existingEmployee) {
+    return res.status(400).json({ success: false, message: 'Email déjà utilisé.' });
   }
+
+  const newEmployee = new Employee({
+    name,
+    email: normalizedEmail,
+    password,
+    phone,
+    role
+  });
+
+  await newEmployee.save();
+
+  return res.status(201).json({ success: true, employee: newEmployee });
+} catch (error) {
+  console.error('Erreur lors de la création de l\'employé :', error);
+  return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+}
+
 };
 
 
