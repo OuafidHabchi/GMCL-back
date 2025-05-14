@@ -254,3 +254,91 @@ exports.getRendezVousByDate = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+
+exports.createAndConfirmRendezVous = async (req, res) => {
+    try {
+        const {
+            type, date, heure,
+            clientFullName, clientEmail, clientPhoneNumber,
+            preferredLanguage , contactMethod , description,
+            confirmedBy,confirmation  
+        } = req.body;
+
+        // 1. Création et confirmation immédiate du RDV
+        const newRDV = new RendezVous({
+            type, date, heure,
+            clientFullName, clientEmail, clientPhoneNumber,
+            preferredLanguage, contactMethod, description,
+            confirmedBy,
+            confirmation,
+            confirmedAt: new Date()
+        });
+
+        const savedRDV = await newRDV.save();
+
+        // 2. Notification au client uniquement
+        const isFr = preferredLanguage === 'fr';
+        const subject = isFr 
+            ? `Confirmation de votre rendez-vous` 
+            : `Your appointment confirmation`;
+
+        const formattedDate = new Date(date).toLocaleDateString(isFr ? 'fr-CA' : 'en-CA', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            timeZone: 'UTC'
+        });
+
+        const message = isFr
+            ? `Bonjour ${clientFullName},\nVotre rendez-vous est confirmé pour le ${formattedDate} à ${heure} (${type}).\nPour modifier ou annuler, veuillez appeler le +1 514-757-0004.\nMerci,\nL'équipe GMCL`
+            : `Hello ${clientFullName},\nYour appointment is confirmed for ${formattedDate} at ${heure} (${type}).\nTo reschedule or cancel, please call +1 514-757-0004.\nThank you,\nGMCL Team`;
+
+        // Envoi Email (si email fourni)
+        if (contactMethod === 'email' || contactMethod === 'both') {
+            try {
+                const defaultClient = SibApiV3Sdk.ApiClient.instance;
+                const apiKey = defaultClient.authentications['api-key'];
+                apiKey.apiKey = process.env.BREVO_API_KEY;
+                const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+
+                const emailData = new SibApiV3Sdk.SendSmtpEmail();
+                emailData.sender = { name: "GMCL Team", email: "gmclteam@gmail.com" };
+                emailData.to = [{ email: clientEmail, name: clientFullName }];
+                emailData.subject = subject;
+                emailData.textContent = message;
+
+                await apiInstance.sendTransacEmail(emailData);
+            } catch (err) {
+                console.error("❌ Erreur envoi email client :", err.response?.data || err.message);
+            }
+        }
+
+        // Envoi SMS (si numéro fourni)
+        if ((contactMethod === 'phone' || contactMethod === 'both') && clientPhoneNumber) {
+            try {
+                await axios.post('https://hook.us2.make.com/lzpdws1j3jijtd4qsxo47racivrym929', {
+                    phone: clientPhoneNumber,
+                    message
+                });
+            } catch (err) {
+                console.error("❌ Erreur envoi SMS client :", err.response?.data || err.message);
+            }
+        }
+
+        return res.status(201).json({
+            success: true,
+            data: savedRDV,
+            message: "Rendez-vous créé, confirmé et client notifié avec succès"
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur lors de la création/confirmation du rendez-vous :', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Erreur lors de la création du rendez-vous',
+            error: error.message
+        });
+    }
+};

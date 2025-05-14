@@ -13,4 +13,7 @@ router.put('/confirm/:id', rdvController.confirmRendezVous);
 // routes/rendezVousRoutes.js
 router.get('/byDate/:date', rdvController.getRendezVousByDate);
 
+// routes/rendezVousRoutes.js
+router.post('/create-confirm', rdvController.createAndConfirmRendezVous);
+
 module.exports = router;
