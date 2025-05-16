@@ -158,3 +158,84 @@ exports.generateReport = async (req, res) => {
     });
   }
 };
+
+
+// Rechercher un time card par employeeId et date
+exports.getTimeEntryByEmployeeAndDate = async (req, res) => {
+  try {
+    const { employeeId, date } = req.query;
+
+    if (!employeeId || !date) {
+      return res.status(400).json({
+        success: false,
+        message: 'employeeId et date sont requis'
+      });
+    }
+
+    const timeEntry = await TimeEntry.findOne({ 
+      employeeId,  // Pas besoin de conversion si vous stockez comme string
+      date 
+    });
+
+    if (!timeEntry) {
+      return res.status(200).json({  // Changé de res.json() à res.status(200).json()
+        success: false,             // Changé à false pour cohérence
+        timeEntry: null,
+        message: 'Aucun time card trouvé pour cette date'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      timeEntry
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+
+
+// Mettre à jour un time card par son ID
+exports.updateTimeEntryById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { startTime, endTime, breakDuration } = req.body;
+    if (!startTime) {
+      return res.status(400).json({
+        success: false,
+        message: 'startTime est requis'
+      });
+    }
+
+    const timeEntry = await TimeEntry.findByIdAndUpdate(
+      id,
+      { 
+        startTime,
+        endTime: endTime || undefined, // Permet de mettre endTime à null
+        breakDuration: breakDuration || 0 
+      },
+      { new: true }
+    )
+
+    if (!timeEntry) {
+      return res.status(404).json({
+        success: false,
+        message: 'Time card non trouvé'
+      });
+    }
+
+    res.json({
+      success: true,
+      timeEntry
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};

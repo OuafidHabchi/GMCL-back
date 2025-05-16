@@ -9,4 +9,10 @@ router.put('/:id', timeEntryController.updateTimeEntry);
 router.get('/', timeEntryController.getTimeEntries);
 router.get('/report', timeEntryController.generateReport);
 
+
+router.put('/update/:id', timeEntryController.updateTimeEntryById); // Nouvelle route
+
+router.get('/employe', timeEntryController.getTimeEntryByEmployeeAndDate); // Nouvelle route
+
+
 module.exports = router;
