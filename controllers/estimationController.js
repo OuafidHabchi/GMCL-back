@@ -2,6 +2,10 @@ const SibApiV3Sdk = require('sib-api-v3-sdk');
 const Estimation = require('../models/Estimation'); // Import du modèle Estimation
 const Employee = require('../models/Employee'); // Import du modèle Employee
 const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
+const sharp = require('sharp');
+const heicConvert = require('heic-convert');
 
 exports.createEstimation = async (req, res) => {
     try {
@@ -10,18 +14,69 @@ exports.createEstimation = async (req, res) => {
             brand, model, trim, year, description,
             preferredLanguage, contactMethod
         } = req.body;
-        const images = req.files?.map(file => file.path) || [];
+        // Traitement des images avec conversion HEIC si nécessaire
+        const processedImages = [];
 
-        const cleanedImages = images.map(imgPath => {
-            const parts = imgPath.split('uploads');
-            return parts[1] ? `uploads${parts[1].replace(/\\/g, '/')}` : imgPath;
-        });
+        for (const file of req.files || []) {
+            let finalPath = file.path;
+
+            // Vérifier si c'est un HEIC
+            if (file.mimetype === 'image/heic' || file.originalname.toLowerCase().endsWith('.heic')) {
+                try {
+                    // Chemin pour la version JPEG
+                    const jpegPath = file.path.replace(/\.heic$/i, '.jpg');
+
+                    // Lire le fichier HEIC
+                    const inputBuffer = fs.readFileSync(file.path);
+
+                    // Convertir en JPEG
+                    const outputBuffer = await heicConvert({
+                        buffer: inputBuffer,
+                        format: 'JPEG',
+                        quality: 0.8
+                    });
+
+                    // Sauvegarder le JPEG
+                    fs.writeFileSync(jpegPath, outputBuffer);
+
+                    // Supprimer l'original HEIC
+                    fs.unlinkSync(file.path);
+
+                    finalPath = jpegPath;
+
+                    // Optimiser l'image avec Sharp
+                    await sharp(jpegPath)
+                        .resize(1200) // Largeur max de 1200px
+                        .jpeg({ quality: 80 }) // Compression à 80%
+                        .toFile(jpegPath);
+
+                } catch (convertErr) {
+                    console.error('Erreur conversion HEIC:', convertErr);
+                    // Si la conversion échoue, garder l'original et continuer
+                }
+            } else {
+                // Optimiser les autres formats d'image (JPEG/PNG)
+                try {
+                    await sharp(file.path)
+                        .resize(1200)
+                        .jpeg({ quality: 80 })
+                        .toFile(file.path);
+                } catch (sharpErr) {
+                    console.error('Erreur optimisation image:', sharpErr);
+                }
+            }
+
+            // Nettoyer le chemin pour la base de données
+            const parts = finalPath.split('uploads');
+            const cleanedPath = parts[1] ? `uploads${parts[1].replace(/\\/g, '/')}` : finalPath;
+            processedImages.push(cleanedPath);
+        }
 
         const newEstimation = new Estimation({
             type, fullName, email, phone,
             brand, model, trim, year,
             description, preferredLanguage, contactMethod,
-            images: cleanedImages
+            images: processedImages
         });
 
         await newEstimation.save();
