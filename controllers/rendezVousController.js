@@ -97,7 +97,26 @@ exports.createRendezVous = async (req, res) => {
 
 exports.getAllRendezVous = async (req, res) => {
     try {
-        const allRDV = await RendezVous.find().populate('estimationId');
+        let query = {};
+
+        console.log("Query params:", req.query);
+        
+        
+        // Gestion des filtres de date
+        if (req.query.startDate && req.query.endDate) {
+            const startDate = new Date(req.query.startDate);
+            const endDate = new Date(req.query.endDate);
+            
+            // On ajoute un jour à la date de fin pour inclure toute la journée
+            endDate.setDate(endDate.getDate() + 1);
+            
+            query.date = {
+                $gte: startDate,
+                $lt: endDate
+            };
+        }
+        
+        const allRDV = await RendezVous.find(query).populate('estimationId');
         res.status(200).json(allRDV);
     } catch (error) {
         res.status(500).json({ error: error.message });

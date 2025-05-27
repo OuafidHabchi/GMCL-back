@@ -13,8 +13,7 @@ exports.getAllEmployees = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    
+    const { email, password } = req.body;    
     // Vérifier si l'employé existe
     const employee = await Employee.findOne({ email });
     
